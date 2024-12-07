@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+<div class="max-w-5xl mx-auto bg-white shadow-md rounded-lg p-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 id="timelineHeader" class="text-2xl font-bold text-gray-800">Timeline Events</h1>
+        <div class="space-x-4">
+            <a href="/list-timelines.html" class="text-blue-600 hover:underline">Back to Timelines</a>
+            <a id="addEventLink" href="#" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300">
+                Add Event
+            </a>
+        </div>
+    </div>
+
+    <table class="w-full border-collapse">
+        <thead>
+        <tr class="bg-gray-100">
+            <th class="text-left p-3 border-b">ID</th>
+            <th class="text-left p-3 border-b">Title</th>
+            <th class="text-left p-3 border-b">Timestamp</th>
+            <th class="text-left p-3 border-b">Description</th>
+        </tr>
+        </thead>
+        <tbody id="eventsTable">
+        <!-- Events will be dynamically populated here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Get timeline details from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const timelineId = urlParams.get('timelineId');
+    const timelineName = urlParams.get('timelineName');
+
+    // Set timeline header and add event link
+    document.getElementById('timelineHeader').textContent = `Events for "${timelineName}"`;
+    document.getElementById('addEventLink').href = `/events.html?timelineId=${timelineId}&timelineName=${encodeURIComponent(timelineName)}`;
+
+    async function fetchTimelineEvents() {
+        try {
+            const response = await fetch(`http://localhost:50051/api/v1/timelines/${timelineId}/events`);
+            if (response.ok) {
+                const events = await response.json();
+                const tableBody = document.getElementById('eventsTable');
+
+                events.forEach(event => {
+                    const row = document.createElement('tr');
+                    row.classList.add('hover:bg-gray-50');
+                    row.innerHTML = `
+                            <td class="p-3 border-b">${event.id}</td>
+                            <td class="p-3 border-b">${event.title}</td>
+                            <td class="p-3 border-b">${new Date(event.timestamp).toLocaleString()}</td>
+                            <td class="p-3 border-b">${event.description || 'No description'}</td>
+                        `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                console.error('Failed to fetch timeline events');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Fetch timeline events when page loads
+    fetchTimelineEvents();
+</script>
+</body>
+</html>

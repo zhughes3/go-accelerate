@@ -1,0 +1,1 @@
+SELECT id, title, created_at, updated_at FROM timelines WHERE user_id = $1;

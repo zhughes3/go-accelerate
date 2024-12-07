@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+<div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-8">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 id="timelineHeader" class="text-2xl font-bold text-gray-800">Add Event to Timeline</h1>
+        <a href="/list-timelines.html" class="text-blue-600 hover:underline">Back to Timelines</a>
+    </div>
+
+    <form id="eventForm" class="space-y-4">
+        <div class="grid grid-cols-1 gap-4">
+            <div>
+                <label for="eventTitle" class="block text-sm font-medium text-gray-700 mb-2">Event Title</label>
+                <input
+                        type="text"
+                        id="eventTitle"
+                        name="eventTitle"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter event title"
+                >
+            </div>
+
+            <div>
+                <label for="eventTimestamp" class="block text-sm font-medium text-gray-700 mb-2">Timestamp</label>
+                <input
+                        type="datetime-local"
+                        id="eventTimestamp"
+                        name="eventTimestamp"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+
+            <div>
+                <label for="eventDescription" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                        id="eventDescription"
+                        name="eventDescription"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter a brief description"
+                ></textarea>
+            </div>
+
+            <div>
+                <label for="eventContent" class="block text-sm font-medium text-gray-700 mb-2">Detailed Content</label>
+                <textarea
+                        id="eventContent"
+                        name="eventContent"
+                        rows="6"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter detailed event content"
+                ></textarea>
+            </div>
+
+            <div>
+                <label for="eventImage" class="block text-sm font-medium text-gray-700 mb-2">Event Image (max 1MB)</label>
+                <input
+                        type="file"
+                        id="eventImage"
+                        name="eventImage"
+                        accept="image/*"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+        </div>
+
+        <button
+                type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+        >
+            Add Event
+        </button>
+    </form>
+</div>
+
+<script>
+    // Get timeline details from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const timelineId = urlParams.get('timelineId');
+    const timelineName = urlParams.get('timelineName');
+
+    // Set timeline header
+    document.getElementById('timelineHeader').textContent = `Add Event to "${timelineName}"`;
+
+    document.getElementById('eventForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+
+        formData.append('title', document.getElementById('eventTitle').value);
+        formData.append('timestamp', document.getElementById('eventTimestamp').value);
+        formData.append('description', document.getElementById('eventDescription').value);
+        formData.append('content', document.getElementById('eventContent').value);
+
+        const imageFile = document.getElementById('eventImage').files[0];
+        if (imageFile) {
+            // Check file size (1MB = 1,048,576 bytes)
+            if (imageFile.size > 1048576) {
+                alert('Image must be less than 1MB');
+                return;
+            }
+            formData.append('image', imageFile);
+        }
+
+        try {
+            const response = await fetch(`http://localhost:50051/api/v1/timelines/${timelineId}/events`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                // Redirect to timeline events page
+                window.location.href = `/timeline-events.html?timelineId=${timelineId}&timelineName=${encodeURIComponent(timelineName)}`;
+            } else {
+                alert('Failed to add event');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred');
+        }
+    });
+</script>
+</body>
+</html>
